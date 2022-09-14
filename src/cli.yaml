@@ -1,0 +1,38 @@
+name: pmrs-cli
+version: "0.0.2"
+author: Johannes Herforth <johannes.herforth@rwth-aachen.de>
+about: Cli frontend for the pmrs package.
+subcommands:
+  - validate:
+      about: "Validates the input ocel file if it fits the official schema. Hint: the date-time format is strict with RFC 3339."
+      version: "0.0.2"
+      author: Johannes Herforth <johannes.herforth@rwth-aachen.de>
+      args:
+        - INPUT:
+            required: true
+            index: 1
+            help: Input OCEL file (currently only .jsonocel files supported).
+        - verbose:
+            short: v
+            long: verbose
+            help: Prints all the issues with the input file if there is a problem.
+  - ocel:
+      about: "Commands where the main entity is an OCEL log (JSONOCEL/XMLOCEL)"
+      version: "0.0.1"
+      author: Johannes Herforth <johannes.herforth@rwth-aachen.de>
+      subcommands:
+        - validate:
+            about: "Validates the input ocel file if it fits the official schema. Hint: the date-time format is strict with RFC 3339."
+            version: "0.0.1"
+            author: Johannes Herforth <johannes.herforth@rwth-aachen.de>
+            args:
+              - INPUT:
+                  required: true
+                  index: 1
+                  help: Input OCEL file (currently only .jsonocel files supported).
+              - verbose:
+                  short: v
+                  long: verbose
+                  help: Prints all the issues with the input file if there is a problem.
+              - validate:
+
