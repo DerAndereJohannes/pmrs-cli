@@ -1,5 +1,7 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand, Args};
+use pmrs::objects::ocdg::decomposition::decompose_in_place;
+use pmrs::objects::ocdg::importer::import_ocdg;
 use pmrs::objects::ocel::validator::{validate_ocel, validate_ocel_verbose};
 use pmrs::objects::ocel::importer::import_ocel;
 use pmrs::objects::ocdg::{generate_ocdg, Relations};
@@ -46,7 +48,8 @@ struct OcdgBase {
 
 #[derive(Subcommand, Debug)]
 enum OcdgCommands {
-    Generate(OcdgGeneration)
+    Generate(OcdgGeneration),
+    Decompose(OcdgDecompose)
 }
 
 #[derive(Args, Debug)]
@@ -57,6 +60,16 @@ struct OcdgGeneration {
     /// Output file name and location. Default: output.gexf
     #[clap(short, long)]
     output: Option<String>,
+}
+
+#[derive(Args, Debug)]
+struct OcdgDecompose {
+    /// Path to OCEL file
+    path: PathBuf,
+
+    /// Output file name and location. Default: output.gexf
+    #[clap(short, long)]
+    output: Option<PathBuf>,
 }
 
 #[derive(Args, Debug)]
@@ -130,6 +143,39 @@ fn main() {
                             }
                         }
                         Err(e) => {error!("Importing the log had the following error: {:?}", e);}
+                    }
+                },
+                OcdgCommands::Decompose(decompose) => {
+                    let output_path: PathBuf;
+                    match &decompose.output {
+                        Some(path) => {
+                            debug!("Custom path of {:?} selected", path.to_str());
+                            output_path = path.clone();
+                        },
+                        None => {output_path = Path::new("output-decomposed.gexf").to_path_buf();}
+                    }
+                    if let Some(ext) = decompose.path.extension() {
+                        if ext == "gexf" || ext == "gexfocdg" {
+                            debug!("Importing {:?}", decompose.path);
+                            match import_ocdg(&decompose.path.to_string_lossy()) {
+                                Ok(mut ocdg) => {
+                                    debug!("Decomposing OCDG.");
+                                    ocdg = decompose_in_place(ocdg);
+                                    debug!("Attempting to export the OCDG to {:?}", &output_path);
+                                    match export_ocdg(&ocdg, &output_path.to_string_lossy()) {
+                                        Ok(_) => {debug!("Successfully exported the decomposed OCDG to: {:?}", output_path);},
+                                        Err(e) => {error!("Could not export OCDG due to: {:?}", e);}
+                                    }
+                                },
+                                Err(e) => {error!("Failed to import {:?} with error: {:?}", decompose.path, e);}
+                            }
+
+                        } else {
+                            error!("Invalid file type: {:?}", ext);
+                        }
+                        
+                    } else {
+                        error!("Please provide a file with a file extension.");
                     }
                 }
             }
