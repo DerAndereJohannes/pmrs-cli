@@ -37,7 +37,13 @@ struct OcelBase {
 
 #[derive(Subcommand, Debug)]
 enum OcelCommands {
-    Validate(Validate)
+    Validate(Validate),
+    Situations(OcelSituations)
+}
+
+#[derive(Args, Debug)]
+struct OcelSituations {
+    situation_type: bool 
 }
 
 #[derive(Parser, Debug)]
@@ -116,7 +122,8 @@ fn main() {
                     } else {
                         error!("Error: {} file format is not supported.", validate.path);
                     }
-                }
+                },
+                OcelCommands::Situations(situations) => {}
             }
         },
         BaseCommands::Ocdg(ocdg_sub) => {
